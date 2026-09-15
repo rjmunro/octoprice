@@ -87,6 +87,7 @@ const TariffComparisionCard = ({
     cost !== null && !Number.isNaN(cost) && rank === 1 ? Sparkles : "div";
 
   if (!isLoading && error) {
+    if (error === "Tariff unavailable.") return null;
     if (rank === 1) {
       return (
         <div

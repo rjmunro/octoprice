@@ -112,6 +112,7 @@ const useConsumptionCalculation = (inputs: IConsumptionCalculation) => {
     data: rateData,
     isSuccess: isRateDataSuccess,
     isLoading: isRateDataLoading,
+    isError: isRateDataError,
   } = useYearlyTariffQuery<{
     results: {
       value_inc_vat: number;
@@ -145,6 +146,7 @@ const useConsumptionCalculation = (inputs: IConsumptionCalculation) => {
     data: standingChargeData,
     isSuccess: isStandingChargeDataSuccess,
     isLoading: isStandingChargeDataLoading,
+    isError: isStandingChargeDataError,
   } = useQuery<{
     results: {
       value_inc_vat: number;
@@ -184,6 +186,12 @@ const useConsumptionCalculation = (inputs: IConsumptionCalculation) => {
       ) ?? [],
   };
 
+  const isTariffUnavailable =
+    isRateDataError ||
+    isStandingChargeDataError ||
+    (isRateDataSuccess && flattenedRateData.results.length === 0) ||
+    (isStandingChargeDataSuccess && standingChargeData.results.length === 0);
+
   if (isSuccess && consumptionData.results.length === 0) {
     return {
       cost: null,
@@ -194,6 +202,19 @@ const useConsumptionCalculation = (inputs: IConsumptionCalculation) => {
       lastDate: null,
       error:
         "Sorry, no consumption data available. Please try to select a different meter or try later.",
+      newTracker: true,
+    };
+  }
+
+  if (isSuccess && isTariffUnavailable) {
+    return {
+      cost: null,
+      totalUnit: 0,
+      totalPrice: 0,
+      totalStandingCharge: 0,
+      isLoading: false,
+      lastDate: null,
+      error: "Tariff unavailable.",
       newTracker: true,
     };
   }
@@ -261,7 +282,7 @@ const useConsumptionCalculation = (inputs: IConsumptionCalculation) => {
     totalUnit: 0,
     totalPrice: 0,
     totalStandingCharge: 0,
-    isLoading: isLoading || isRateDataLoading,
+    isLoading: isLoading || isRateDataLoading || isStandingChargeDataLoading,
     lastDate: null,
     error: "",
   };
